@@ -1,14 +1,17 @@
-createdb Bookstore;
+DROP DATABASE IF EXISTS bookstore;
+CREATE DATABASE bookstore;
 
-use Bookstore;
-DROP TABLE IF EXISTS Books;
+\c bookstore;
+DROP TABLE IF EXISTS books;
 
-CREATE TABLE Books (
-    [ID] SERIAL PRIMARY KEY NOT NULL,
-    [Title] varchar(100) NOT NULL,
-    [Author] varchar(100) NOT NULL,
-    [Publisher] varchar(100) NOT NULL,
-    [PublishDate] date NOT NULL,
-    [Rating] int NOT NULL, -- 1-3
-    [Status] varchar(10) NOT NULL -- (CheckedIn, CheckedOut)
+CREATE TABLE books (
+    id INT GENERATED ALWAYS AS IDENTITY,
+    title varchar(100) NOT NULL,
+    author varchar(100) NOT NULL,
+    publisher varchar(100) NOT NULL,
+    publishDate date NOT NULL,
+    rating int NOT NULL, -- 1-3
+    status varchar(10) NOT NULL -- (CheckedIn, CheckedOut)
 );
+
+INSERT INTO books(title, author, publisher, publishDate, rating, status) VALUES ('test', 'test', 'test', NOW(), 1, 'good');

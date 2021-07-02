@@ -5,7 +5,7 @@ volumes:
 
 services:
     postgres:
-        image: postgres:11.6
+        image: postgres:latest
         container_name: pg-docker
         ports:
             - "5432:5432"
@@ -13,8 +13,8 @@ services:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=password
         volumes:
-            - ./db/postgres.conf:/etc/postgresql/postgresql.conf
             - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+            - ./db/postgres.conf:/etc/postgresql/postgresql.conf
             - ./db/data:/var/lib/postgresql/data
         command: postgres -c config_file=/etc/postgresql/postgresql.conf
         restart: always
