@@ -1,19 +1,21 @@
 version: '3.5'
 
 volumes:
-  local_postgres_data: {}
+    local_postgres_data: {}
 
-  services:
-    postgresql:
-      image: postgres:11.6
-      container_name: pg-docker
-      ports:
-        - "5400:5432"
-      environment:
-        - POSTGRES_USER=admin
-        - POSTGRES_PASSWORD=password
-      volumes:
-        - ./postgres.conf:/etc/postgresql/postgresql.conf
-        - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
-      command: postgres -c config_file=/etc/postgresql/postgresql.conf
-      restart: always
+services:
+    postgres:
+        image: postgres:11.6
+        container_name: pg-docker
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password
+        volumes:
+            - ./db/postgres.conf:/etc/postgresql/postgresql.conf
+            - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+            - ./db/data:/var/lib/postgresql/data
+        command: postgres -c config_file=/etc/postgresql/postgresql.conf
+        restart: always
+           
