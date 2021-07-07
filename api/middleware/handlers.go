@@ -26,7 +26,7 @@ func createConnection() *sql.DB {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading .env file %v", err)
 	}
 
 	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
@@ -166,13 +166,50 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 // ----------------- Data Access --------------------
+const tableCreationQuery = `CREATE TABLE IF NOT EXISTS books
+	(
+		id INT GENERATED ALWAYS AS IDENTITY,
+		title varchar(100) NOT NULL,
+		author varchar(100) NOT NULL,
+		publisher varchar(100) NOT NULL,
+		publishDate date NOT NULL,
+		rating int NOT NULL,
+		status varchar(10) NOT NULL
+	)`
+
+func ResetDB() {
+	db := createConnection()
+
+	if _, err1 := db.Exec(tableCreationQuery); err1 != nil {
+		log.Fatalf("Unable to execute table check. %v", err1)
+	}
+
+	defer db.Close()
+	sqlstatement := `Truncate TABLE books RESTART IDENTITY`
+
+	if _, err := db.Exec(sqlstatement); err != nil {
+		log.Fatalf("Unable to execute the TRUNCATE command. %v", err)
+	}
+
+	var id int64
+
+	sqlstatement2 := `INSERT INTO books(title, author, publisher, publishDate, rating, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING ID`
+	err2 := db.QueryRow(sqlstatement2, "test", "test", "test", "1/1/2020", 1, "CheckedIn").Scan(&id)
+
+	if err2 != nil {
+		log.Fatalf("Unable to execute the INSERT command. %v", err2)
+	}
+
+	fmt.Printf("DB was reset and row with ID: %v was created", id)
+}
+
 func insertBook(book models.Book) int64 {
 
 	db := createConnection()
 
 	defer db.Close()
 
-	sqlStatement := `INSERT INTO books (title, author, publisher, publishDate, rating, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id` //stored proc
+	sqlStatement := `INSERT INTO books (title, author, publisher, publishDate, rating, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 
 	var id int64
 
