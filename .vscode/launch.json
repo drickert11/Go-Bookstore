@@ -10,8 +10,8 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "port": 8080
-            "program": "${workspaceRoot}/api/main.go",
+            "port": 8080,
+            "program": "${workspaceRoot}/main.go",
             "showLog": true
         }
     ]
