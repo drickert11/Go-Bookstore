@@ -62,7 +62,7 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 		Message: "Book was created seccessfully",
 	}
 
-	json.NewEncoder(w).Encode(response)
+	respondWithJSON(w, http.StatusCreated, response)
 }
 
 func GetBook(w http.ResponseWriter, r *http.Request) {
@@ -71,6 +71,8 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
+	log.Printf("Params are %v", params)
+
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
@@ -78,12 +80,17 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	book, err := getBook(int64(id))
-
-	if err != nil {
-		log.Fatalf("Unable to get book. %v", err)
+	fmt.Printf("error says %v", err)
+	switch {
+	case err == sql.ErrNoRows:
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("No entry found with the id= %v", id))
+		return
+	case err != nil:
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Some problem occurred.  %v", err))
+		return
+	default:
+		respondWithJSON(w, http.StatusOK, book)
 	}
-
-	json.NewEncoder(w).Encode(book)
 }
 
 func GetAllBooks(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +103,7 @@ func GetAllBooks(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Unable to get all books. %v", err)
 	}
 
-	json.NewEncoder(w).Encode(books)
+	respondWithJSON(w, http.StatusOK, books)
 }
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +139,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(res)
+	respondWithJSON(w, http.StatusOK, book)
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +167,19 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(res)
+	respondWithJSON(w, http.StatusOK, res)
+}
+
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
 
 // ----------------- Data Access --------------------
@@ -194,6 +215,14 @@ func ResetDB() {
 
 	if err2 != nil {
 		log.Fatalf("Unable to execute the INSERT command. %v", err2)
+	}
+
+	fmt.Printf("DB was reset and row with ID: %v was created", id)
+
+	err3 := db.QueryRow(sqlstatement2, "test2", "test2", "test2", "1/2/2021", 3, "CheckedOut").Scan(&id)
+
+	if err3 != nil {
+		log.Fatalf("Unable to execute the INSERT command. %v", err3)
 	}
 
 	fmt.Printf("DB was reset and row with ID: %v was created", id)
@@ -236,7 +265,7 @@ func getBook(id int64) (models.Book, error) {
 	switch err {
 	case sql.ErrNoRows:
 		fmt.Println("No rows were returned!")
-		return book, nil
+		return book, sql.ErrNoRows
 	case nil:
 		return book, nil
 	default:
