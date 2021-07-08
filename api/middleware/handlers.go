@@ -163,7 +163,6 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 		Message: msg,
 	}
 
-	json.NewEncoder(w).Encode(res)
 	respondWithJSON(w, http.StatusOK, res)
 }
 
