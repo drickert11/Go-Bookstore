@@ -129,14 +129,19 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 	updateCount := updateBook(book)
 
-	msg := fmt.Sprintf("Book was updated successfully. Rowcount: %v", updateCount)
+	if updateCount == 0 {
+		respondWithError(w, http.StatusNotAcceptable, "There was an error, or Book at that ID does not exist")
+	} else {
 
-	res := response{
-		ID:      int64(book.ID),
-		Message: msg,
+		msg := fmt.Sprintf("Book was updated successfully. Rowcount: %v", updateCount)
+
+		res := response{
+			ID:      int64(book.ID),
+			Message: msg,
+		}
+
+		respondWithJSON(w, http.StatusOK, res)
 	}
-
-	respondWithJSON(w, http.StatusOK, res)
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
@@ -156,14 +161,19 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 
 	deleteCount := deleteBook(int64(id))
 
-	msg := fmt.Sprintf("Book was deleted successfully. Rowcount: %v", deleteCount)
+	if deleteCount == 0 {
+		respondWithError(w, http.StatusNotAcceptable, "There was an error, or Book at that ID does not exist")
+	} else {
 
-	res := response{
-		ID:      int64(id),
-		Message: msg,
+		msg := fmt.Sprintf("Book was deleted successfully. Rowcount: %v", deleteCount)
+
+		res := response{
+			ID:      int64(id),
+			Message: msg,
+		}
+
+		respondWithJSON(w, http.StatusOK, res)
 	}
-
-	respondWithJSON(w, http.StatusOK, res)
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
@@ -266,9 +276,8 @@ func getBook(id int64) (models.Book, error) {
 		return book, nil
 	default:
 		log.Fatalf("Issue with Row scan. %v", err)
+		return book, err
 	}
-
-	return book, err
 }
 
 func getAllBooks() ([]models.Book, error) {

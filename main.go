@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"go-bookstore/router"
 	"log"
 	"net/http"
+
+	"go-bookstore/router"
 
 	_ "github.com/lib/pq"
 )
