@@ -37,6 +37,12 @@ id can be left as 0 or anything when adding a book.
 
 http://localhost:8080/api/book as a PUT request will accept the same shape as a new book, however the id does matter this time and will update the book at that id or throw an error.
 
+http://localhost:8080/api/deletebook/[id] (example: http://localhost:8080/api/deletebook/3) is a DELETE request that will purge the book of that id from the database or throw an error if it can't find it.
+
+For Testing:
+Within the Go_Boostore directory you can run:
+go test ./... 
+To note: all of the tests were stored in Middleware.
 
 
 
