@@ -22,7 +22,7 @@ func TestGetBooks(t *testing.T) {
 		t.Errorf("Different Status Code than Expected: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := `[{"id":1,"title":"test","author":"test","publisher":"test","publishDate":"1/1/2021","rating":1,"status":"CheckedIn"}]`
+	expected := `[{"id":1,"title":"test","author":"test","publisher":"test","publishDate":"2020-01-01T00:00:00Z","rating":1,"status":"CheckedIn"}]`
 	if resp.Body.String() != expected {
 		t.Errorf("Wrong result returned: got %v want %v", resp.Body.String(), expected)
 	}

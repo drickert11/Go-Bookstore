@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"go-bookstore/models"
 	"log"
-	"net/http"
-	"os"      // used to read the environment variable
-	"strconv" // package used to covert string into int type
+	"net/http" // used to read the environment variable
+	"strconv"  // package used to covert string into int type
 
 	"github.com/gorilla/mux" // used to get the params from the route
 
-	"github.com/joho/godotenv" // package used to read the .env file
-	_ "github.com/lib/pq"      // postgres golang driver
+	// package used to read the .env file
+	_ "github.com/lib/pq" // postgres golang driver
 )
 
 //JSON structure
@@ -22,14 +21,11 @@ type response struct {
 	Message string `json:"message,omitempty"`
 }
 
+var connectionString = "postgres://aprnxuwd:sqWwoqHvVOvEgnPBOLJHb8jqiBzuL6xu@batyr.db.elephantsql.com/aprnxuwd"
+
 func createConnection() *sql.DB {
-	err := godotenv.Load(".env")
 
-	if err != nil {
-		log.Fatalf("Error loading .env file %v", err)
-	}
-
-	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
+	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
 		panic(err)
