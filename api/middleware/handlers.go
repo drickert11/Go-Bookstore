@@ -116,17 +116,9 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "PUT")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	params := mux.Vars(r)
-
-	id, err := strconv.Atoi(params["id"])
-
-	if err != nil {
-		log.Fatalf("Unable to convert the string into int.  %v", err)
-	}
-
 	var book models.Book
 
-	err = json.NewDecoder(r.Body).Decode(&book)
+	err := json.NewDecoder(r.Body).Decode(&book)
 
 	if err != nil {
 		log.Fatalf("Unable to decode the request body.  %v", err)
@@ -135,17 +127,16 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateCount := updateBook(int64(id), book)
+	updateCount := updateBook(book)
 
 	msg := fmt.Sprintf("Book was updated successfully. Rowcount: %v", updateCount)
 
 	res := response{
-		ID:      int64(id),
+		ID:      int64(book.ID),
 		Message: msg,
 	}
 
-	json.NewEncoder(w).Encode(res)
-	respondWithJSON(w, http.StatusOK, book)
+	respondWithJSON(w, http.StatusOK, res)
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
@@ -314,7 +305,7 @@ func getAllBooks() ([]models.Book, error) {
 	return books, err
 }
 
-func updateBook(id int64, book models.Book) int64 {
+func updateBook(book models.Book) int64 {
 
 	db := createConnection()
 
