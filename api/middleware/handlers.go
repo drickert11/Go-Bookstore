@@ -53,6 +53,9 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Fatalf("Unable to decode the request body. %v", err)
+	} else if check := models.IsValidBook(book); check != "none" {
+		respondWithError(w, http.StatusNotAcceptable, fmt.Sprintf("Book was invalid because of %v", check))
+		return
 	}
 
 	resultID := insertBook(book)
@@ -127,6 +130,9 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Fatalf("Unable to decode the request body.  %v", err)
+	} else if check := models.IsValidBook(book); check != "none" {
+		respondWithError(w, http.StatusNotAcceptable, fmt.Sprintf("Book was invalid because of %v", check))
+		return
 	}
 
 	updateCount := updateBook(int64(id), book)
