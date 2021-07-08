@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//GETTERS
 func TestGetBooks(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "/book", nil)
@@ -75,6 +76,7 @@ func TestGetBooksByInvalidID(t *testing.T) {
 	}
 }
 
+//CREATORS
 func TestCreateBook(t *testing.T) {
 
 	var jsonStr = []byte(`{"id":0,"title":"Dune","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":3,"status":"CheckedIn"}`)
@@ -95,6 +97,111 @@ func TestCreateBook(t *testing.T) {
 	}
 
 	expected := `{"id":3,"message":"Book was created seccessfully"}`
+	if resp.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			resp.Body.String(), expected)
+	}
+}
+
+func TestCreateInvalidTitleBook(t *testing.T) {
+
+	var jsonStr = []byte(`{"id":0,"title":"","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":3,"status":"CheckedIn"}`)
+
+	req, err := http.NewRequest("POST", "/newbook", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	handler := http.HandlerFunc(AddBook)
+	handler.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusNotAcceptable {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotAcceptable)
+	}
+
+	expected := `{"error":"Book was invalid because of Title"}`
+	if resp.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			resp.Body.String(), expected)
+	}
+}
+
+func TestCreateInvalidRatingBook(t *testing.T) {
+
+	var jsonStr = []byte(`{"id":0,"title":"Dune","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":-1,"status":"CheckedIn"}`)
+
+	req, err := http.NewRequest("POST", "/newbook", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	handler := http.HandlerFunc(AddBook)
+	handler.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusNotAcceptable {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotAcceptable)
+	}
+
+	expected := `{"error":"Book was invalid because of Rating"}`
+	if resp.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			resp.Body.String(), expected)
+	}
+}
+
+func TestCreateInvalidStatusBook(t *testing.T) {
+
+	var jsonStr = []byte(`{"id":0,"title":"Dune","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":1,"status":"Checked"}`)
+
+	req, err := http.NewRequest("POST", "/newbook", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	handler := http.HandlerFunc(AddBook)
+	handler.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusNotAcceptable {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotAcceptable)
+	}
+
+	expected := `{"error":"Book was invalid because of Status"}`
+	if resp.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			resp.Body.String(), expected)
+	}
+}
+
+//UPDATERS
+func TestUpdateBook(t *testing.T) {
+
+	var jsonStr = []byte(`{"id":1,"title":"Dune","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":3,"status":"CheckedIn"}`)
+
+	req, err := http.NewRequest("PUT", "/book", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	handler := http.HandlerFunc(UpdateBook)
+	handler.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	expected := `{"id":1,"message":"Book was updated successfully. Rowcount: 1"}`
 	if resp.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			resp.Body.String(), expected)
