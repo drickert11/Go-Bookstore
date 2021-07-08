@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 )
+
+func TestMain(m *testing.M) {
+	ResetDB()
+
+	exitVal := m.Run()
+
+	os.Exit(exitVal)
+}
 
 //GETTERS
 func TestGetBooks(t *testing.T) {
@@ -205,5 +214,55 @@ func TestUpdateBook(t *testing.T) {
 	if resp.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			resp.Body.String(), expected)
+	}
+}
+
+func TestUpdateInvalidBook(t *testing.T) {
+
+	var jsonStr = []byte(`{"id":1,"title":"Dune","author":"Frank Herbert","publisher":"Dune Publisher","publishDate":"1965-01-01T00:00:00Z","rating":3,"status":"Checked"}`)
+
+	req, err := http.NewRequest("PUT", "/book", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	handler := http.HandlerFunc(UpdateBook)
+	handler.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusNotAcceptable {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusNotAcceptable)
+	}
+
+	expected := `{"error":"Book was invalid because of Status"}`
+	if resp.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			resp.Body.String(), expected)
+	}
+}
+
+//Delete
+func TestDeleteBook(t *testing.T) {
+	path := fmt.Sprintf("/book/%s", "2")
+	req, err := http.NewRequest("DELETE", path, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := httptest.NewRecorder()
+	router := mux.NewRouter()
+
+	router.HandleFunc("/book/{id}", DeleteBook)
+	router.ServeHTTP(resp, req)
+
+	if status := resp.Code; status != http.StatusOK {
+		t.Errorf("Different Status Code than Expected: got %v want %v", status, http.StatusOK)
+	}
+
+	expected := `{"id":2,"message":"Book was deleted successfully. Rowcount: 1"}`
+	if strings.TrimSpace(resp.Body.String()) != expected {
+		t.Errorf("Wrong result returned: got %v want %v", resp.Body.String(), expected)
 	}
 }
